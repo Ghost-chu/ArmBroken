@@ -1,0 +1,4 @@
+name: EC-ArmBroken
+version: ${project.version}
+main: com.bilicraft.eclegbroken.ECArmBroken
+api-version: 1.16
