@@ -11,6 +11,7 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.boss.DragonBattle;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
@@ -124,7 +125,7 @@ public class ArmListener implements Listener {
         if (effectCollection.stream().map(PotionEffect::getType)
                 .anyMatch(effectType -> effectType.equals(PotionEffectType.JUMP) || effectType.equals(PotionEffectType.INCREASE_DAMAGE))) {
             //叠伤害 - 增加50%攻击力
-            event.setDamage(event.getDamage() + event.getDamage() * 0.5);
+            event.setDamage(event.getDamage() * 1.5);
             event.getEntity().sendMessage(LIGHT_PURPLE+"[伤害增强] "+YELLOW+"你的药水效果给你带来了破绽，末影龙额外对你造成了 "
                     + Util.formatDouble(event.getDamage() * 0.5) +"点伤害！");
         }
@@ -149,6 +150,11 @@ public class ArmListener implements Listener {
                 battle.resetCrystals();
             }
         }
+    }
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void damageEnhance(EntityDamageByEntityEvent event){
+        if(event.getEntity() instanceof Player && !(event.getDamager() instanceof Player))
+            event.setDamage(event.getFinalDamage() * 1.3);
     }
 
     @EventHandler(ignoreCancelled = true)
