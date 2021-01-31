@@ -39,12 +39,14 @@ public class ArmListener implements Listener {
     }
 
     //我的胳膊断了
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void mineBlock(BlockBreakEvent event) {
         if (isGaoJiPickaxe(event.getPlayer().getInventory().getItemInMainHand()))
             return;
         Material material = event.getBlock().getType();
         //Mineable blocks
+        if(!material.isSolid() || material.isTransparent())
+            return;
         if (Tag.SAPLINGS.isTagged(material))
             return;
         if (Tag.CROPS.isTagged(material))
@@ -79,7 +81,7 @@ public class ArmListener implements Listener {
     }
 
     //你的就是我的
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void dropAllItems(EntityDeathEvent event) {
         if (!(event.getEntity() instanceof InventoryHolder))
             return;
@@ -91,7 +93,7 @@ public class ArmListener implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void enemySpawning(EntitySpawnEvent event) {
         if (!(event.getEntity() instanceof Monster))
             return;
@@ -111,7 +113,7 @@ public class ArmListener implements Listener {
         entity.setHealth(entity.getMaxHealth());
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void enderDragonAttacking(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof EnderDragon)) {
             return;
@@ -131,7 +133,7 @@ public class ArmListener implements Listener {
         }
 
         //星爆弃疗斩 随机对玩家造成致命伤害 添加玩家HP给末影龙
-        if (random.nextInt(50) == 0) {
+        if (random.nextInt(5) == 0) {
             double healthCanAdd = Math.min(dragon.getMaxHealth() - dragon.getHealth(), ((Player) event.getEntity()).getHealth());
             ((Player) event.getEntity()).damage(100d, dragon);
             ((Player) event.getEntity()).setHealth(0.0d);
@@ -142,22 +144,22 @@ public class ArmListener implements Listener {
             return;
         }
         //攻击时几率恢复末影水晶
-        if (random.nextInt(20) == 0) {
+        if (random.nextInt(3) == 0) {
             DragonBattle battle = dragon.getDragonBattle();
             if (battle != null) {
                 Bukkit.getOnlinePlayers().stream().filter(player->player.getWorld().equals(event.getDamager().getWorld()))
-                        .forEach(sender->sender.sendMessage(LIGHT_PURPLE+"[水晶恢复]"+YELLOW+" 末影龙发动技能，恢复了所有末影水晶"));
+                        .forEach(sender->sender.sendMessage(LIGHT_PURPLE+"[水晶恢复] "+YELLOW+"末影龙发动技能，恢复了所有末影水晶"));
                 battle.resetCrystals();
             }
         }
     }
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGH)
     public void damageEnhance(EntityDamageByEntityEvent event){
         if(event.getEntity() instanceof Player && !(event.getDamager() instanceof Player))
             event.setDamage(event.getFinalDamage() * 1.3);
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void enderDragonDefending(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof EnderDragon)) {
             return;
@@ -199,23 +201,26 @@ public class ArmListener implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void explode(BlockExplodeEvent event) {
         event.setYield(1.0f);
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void explode(EntityExplodeEvent event) {
         event.setYield(1.0f);
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void entityDeath(EntityDeathEvent event) {
         if (random.nextInt(10000) == 0 &&
                 event.getEntity() instanceof Monster &&
                 event.getEntity().getLastDamageCause() != null &&
                 event.getEntity().getLastDamageCause().getEntity() instanceof Player) {
             event.getDrops().add(ItemCreator.makeGaoJiPickaxe());
+        }
+        if(event.getEntity() instanceof EnderDragon){
+            Bukkit.broadcastMessage(GOLD+""+BOLD+"[末影龙已被击杀] 屠龙勇士是："+event.getEntity().getLastDamageCause().getEntity().getName());
         }
     }
 
