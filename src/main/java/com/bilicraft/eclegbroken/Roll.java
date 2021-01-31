@@ -130,19 +130,10 @@ public class Roll {
             public void run() {
                 sendRandomRollTitle(playerList);
                 try {
-                    Thread.sleep(350);
-                    sendRandomRollTitle(playerList);
-                    Thread.sleep(350);
-                    sendRandomRollTitle(playerList);
-                    Thread.sleep(350);
-                    sendRandomRollTitle(playerList);
-                    Thread.sleep(350);
-                    sendRandomRollTitle(playerList);
-                    Thread.sleep(350);
-                    sendRandomRollTitle(playerList);
-                    Thread.sleep(350);
-                    sendRandomRollTitle(playerList);
-                    Thread.sleep(350);
+                    for (int i = 0; i < 30; i++) {
+                        sendRandomRollTitle(playerList);
+                        Thread.sleep(20);
+                    }
                     callback.run();
                 } catch (InterruptedException e) {
                     e.printStackTrace();

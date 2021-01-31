@@ -2,7 +2,8 @@ package com.bilicraft.eclegbroken.listener;
 
 import com.bilicraft.eclegbroken.ECArmBroken;
 import com.bilicraft.eclegbroken.ItemCreator;
-import org.bukkit.ChatColor;
+import com.bilicraft.eclegbroken.Util;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.attribute.Attribute;
@@ -25,6 +26,8 @@ import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.Collection;
 import java.util.Random;
+
+import static org.bukkit.ChatColor.*;
 
 public class ArmListener implements Listener {
     private final Random random = new Random();
@@ -59,13 +62,19 @@ public class ArmListener implements Listener {
             return;
         if (Tag.WALL_SIGNS.isTagged(material))
             return;
+        if(material == Material.GRASS)
+            return;
+        event.setCancelled(true);
     }
 
     private boolean isGaoJiPickaxe(ItemStack stack) {
+        if(stack.getType()!=Material.DIAMOND_AXE){
+            return false;
+        }
         if (!stack.getItemMeta().hasDisplayName()) {
             return false;
         }
-        return stack.getItemMeta().getDisplayName().equals(ChatColor.AQUA + "镐击镐");
+        return stack.getItemMeta().getDisplayName().equals(AQUA + "镐击镐");
     }
 
     //你的就是我的
@@ -88,16 +97,7 @@ public class ArmListener implements Listener {
         LivingEntity entity = (LivingEntity) event.getEntity();
         AttributeInstance maxHealth = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
         AttributeInstance maxAttack = entity.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
-        if (event.getEntity().getType() == EntityType.ENDER_DRAGON) {
-            if (maxAttack != null) {
-                //提升300%末影龙攻击力
-                maxAttack.setBaseValue(maxAttack.getBaseValue() * 3.00d);
-            }
-            if (maxHealth != null) {
-                //提升末影龙血量至5000HP
-                maxHealth.setBaseValue(5000.0d);
-            }
-        } else {
+        if (event.getEntity().getType() != EntityType.ENDER_DRAGON) {
             if (maxAttack != null) {
                 //提升65%怪物攻击力
                 maxAttack.setBaseValue(maxAttack.getBaseValue() * 1.65d);
@@ -107,6 +107,7 @@ public class ArmListener implements Listener {
                 maxHealth.setBaseValue(maxHealth.getBaseValue() * 1.75d);
             }
         }
+        entity.setHealth(entity.getMaxHealth());
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -124,8 +125,9 @@ public class ArmListener implements Listener {
                 .anyMatch(effectType -> effectType.equals(PotionEffectType.JUMP) || effectType.equals(PotionEffectType.INCREASE_DAMAGE))) {
             //叠伤害 - 增加50%攻击力
             event.setDamage(event.getDamage() + event.getDamage() * 0.5);
+            event.getEntity().sendMessage(LIGHT_PURPLE+"[伤害增强] "+YELLOW+"你的药水效果给你带来了破绽，末影龙额外对你造成了 "
+                    + Util.formatDouble(event.getDamage() * 0.5) +"点伤害！");
         }
-
 
         //星爆弃疗斩 随机对玩家造成致命伤害 添加玩家HP给末影龙
         if (random.nextInt(50) == 0) {
@@ -133,15 +135,19 @@ public class ArmListener implements Listener {
             ((Player) event.getEntity()).damage(100d, dragon);
             ((Player) event.getEntity()).setHealth(0.0d);
             dragon.setHealth(dragon.getHealth() + healthCanAdd);
+            Bukkit.getOnlinePlayers().stream().filter(player->player.getWorld().equals(event.getDamager().getWorld()))
+                    .forEach(sender->sender.sendMessage(LIGHT_PURPLE+"[星爆弃疗斩] "+YELLOW+"末影龙发动技能，对 "
+                            +event.getEntity().getName()+" 造成了 "+Util.formatDouble(100.0d)+" 点伤害"));
             return;
         }
         //攻击时几率恢复末影水晶
         if (random.nextInt(20) == 0) {
             DragonBattle battle = dragon.getDragonBattle();
             if (battle != null) {
+                Bukkit.getOnlinePlayers().stream().filter(player->player.getWorld().equals(event.getDamager().getWorld()))
+                        .forEach(sender->sender.sendMessage(LIGHT_PURPLE+"[水晶恢复]"+YELLOW+" 末影龙发动技能，恢复了所有末影水晶"));
                 battle.resetCrystals();
             }
-            return;
         }
     }
 
@@ -150,7 +156,7 @@ public class ArmListener implements Listener {
         if (!(event.getEntity() instanceof EnderDragon)) {
             return;
         }
-        EnderDragon dragon = (EnderDragon) event.getDamager();
+        EnderDragon dragon = (EnderDragon) event.getEntity();
         double health25 = dragon.getMaxHealth() * 0.25;
         double health10 = dragon.getMaxHealth() * 0.10;
         if (event.getFinalDamage() >= dragon.getHealth() && !(event.getDamager() instanceof Player)) {

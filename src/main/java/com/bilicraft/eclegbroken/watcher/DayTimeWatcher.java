@@ -25,6 +25,7 @@ public class DayTimeWatcher extends BukkitRunnable {
         World world = Bukkit.getWorlds().get(0); //Main world
         if (world.getTime() > 14 * 1000 && !todayRolled) {
             plugin.getRoll().systemRoll();
+            plugin.getLogger().info("新的一天ROLL!");
             todayRolled = true;
         } else if (world.getTime() < 14 * 1000 && todayRolled) {
             todayRolled = false;
