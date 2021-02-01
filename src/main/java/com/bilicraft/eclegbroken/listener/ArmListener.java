@@ -16,17 +16,16 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 import static org.bukkit.ChatColor.*;
@@ -96,15 +95,43 @@ public class ArmListener implements Listener {
             event.getDrops().add(stack);
         }
     }
+    @EventHandler
+    public void targeting(EntityTargetLivingEntityEvent event){
+        if(event.getEntity().getWorld().getEnvironment() != World.Environment.THE_END)
+            return;
+        if(!(event.getEntity() instanceof Monster) && !(event.getEntity() instanceof Boss))
+            return;
+        List<Player> playersInTheWorld = new ArrayList<>();
+        Bukkit.getOnlinePlayers().forEach(p->{
+            if(p.getWorld().equals(event.getEntity().getWorld()))
+                playersInTheWorld.add(p);
+        });
+        if(playersInTheWorld.isEmpty())
+            return;
+        Player nearPlayer = null;
+        double nearDistance = Double.MAX_VALUE;
+        for (Player player : playersInTheWorld) {
+            if(nearPlayer == null){
+                nearPlayer = player;
+                nearDistance = event.getEntity().getLocation().distanceSquared(player.getLocation());
+                continue;
+            }
+            if(event.getEntity().getLocation().distanceSquared(player.getLocation()) < nearDistance){
+                nearPlayer = player;
+                nearDistance = event.getEntity().getLocation().distanceSquared(player.getLocation());
+            }
+        }
+        event.setTarget(nearPlayer);
+    }
 
     @EventHandler
     public void enemySpawning(EntitySpawnEvent event) {
-        if(event.getEntity() instanceof Wither){
-            if(event.getLocation().getWorld().getEnvironment() == World.Environment.THE_END){
-                event.setCancelled(true);
-                return;
-            }
-        }
+//        if(event.getEntity() instanceof Wither){
+//            if(event.getLocation().getWorld().getEnvironment() == World.Environment.THE_END){
+//                event.setCancelled(true);
+//                return;
+//            }
+//        }
         if (!(event.getEntity() instanceof Monster))
             return;
         LivingEntity entity = (LivingEntity) event.getEntity();
