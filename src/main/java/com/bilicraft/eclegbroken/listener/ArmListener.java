@@ -6,6 +6,7 @@ import com.bilicraft.eclegbroken.Util;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Tag;
+import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.boss.DragonBattle;
@@ -95,6 +96,12 @@ public class ArmListener implements Listener {
 
     @EventHandler
     public void enemySpawning(EntitySpawnEvent event) {
+        if(event.getEntity() instanceof Wither){
+            if(event.getLocation().getWorld().getEnvironment() == World.Environment.THE_END){
+                event.setCancelled(true);
+                return;
+            }
+        }
         if (!(event.getEntity() instanceof Monster))
             return;
         LivingEntity entity = (LivingEntity) event.getEntity();
