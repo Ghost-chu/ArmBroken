@@ -134,7 +134,7 @@ public class ArmListener implements Listener {
 
         //星爆弃疗斩 随机对玩家造成致命伤害 添加玩家HP给末影龙
         if (random.nextInt(5) == 0) {
-            double healthCanAdd = Math.min(dragon.getMaxHealth() - dragon.getHealth(), ((Player) event.getEntity()).getHealth());
+            double healthCanAdd = Math.min(dragon.getMaxHealth() - dragon.getHealth(), ((Player) event.getEntity()).getHealth()*15);
             ((Player) event.getEntity()).damage(100d, dragon);
             ((Player) event.getEntity()).setHealth(0.0d);
             dragon.setHealth(dragon.getHealth() + healthCanAdd);
@@ -167,6 +167,15 @@ public class ArmListener implements Listener {
         EnderDragon dragon = (EnderDragon) event.getEntity();
         double health25 = dragon.getMaxHealth() * 0.25;
         double health10 = dragon.getMaxHealth() * 0.10;
+        //攻击时几率恢复末影水晶
+        if (random.nextInt(30) == 0) {
+            DragonBattle battle = dragon.getDragonBattle();
+            if (battle != null) {
+                Bukkit.getOnlinePlayers().stream().filter(player->player.getWorld().equals(event.getDamager().getWorld()))
+                        .forEach(sender->sender.sendMessage(LIGHT_PURPLE+"[水晶恢复] "+YELLOW+"末影龙发动技能，恢复了所有末影水晶"));
+                battle.resetCrystals();
+            }
+        }
         if (event.getFinalDamage() >= dragon.getHealth() && !(event.getDamager() instanceof Player)) {
             //致命伤害 对末影龙会造成致命的伤害，只能由玩家直接造成，否则则会保留1HP血量。
             event.setCancelled(true);

@@ -40,10 +40,10 @@ public class DragonWatcher extends BukkitRunnable {
                     plugin.getLogger().info("末影龙攻击力已设置为 >> "+maxAttack.getDefaultValue() * 3.00d);
 
                 }
-                if (maxHealth != null && maxHealth.getBaseValue() != 5000.0d) {
+                if (maxHealth != null && maxHealth.getBaseValue() != 15000.0d) {
                     //提升末影龙血量至5000HP
-                    maxHealth.setBaseValue(5000.0d);
-                    dragon.setHealth(5000.0d);
+                    maxHealth.setBaseValue(15000.0d);
+                    dragon.setHealth(15000.0d);
                     plugin.getLogger().info("末影龙血量已设置为 >> "+dragon.getMaxHealth());
                 }
             });
