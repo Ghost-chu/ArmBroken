@@ -78,7 +78,10 @@ public class ArmListener implements Listener {
         if (!stack.getItemMeta().hasDisplayName()) {
             return false;
         }
-        return stack.getItemMeta().getDisplayName().equals(AQUA + "镐击镐");
+        if(!stack.getItemMeta().getDisplayName().equals(AQUA + "镐击镐")){
+            return false;
+        }
+        return stack.getDurability() <= 10;
     }
 
     //你的就是我的
