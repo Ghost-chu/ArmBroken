@@ -1,6 +1,8 @@
 package com.bilicraft.eclegbroken;
 
 import com.bilicraft.eclegbroken.listener.ArmListener;
+import com.bilicraft.eclegbroken.listener.RollListener;
+import com.bilicraft.eclegbroken.watcher.DayTimeWatcher;
 import com.bilicraft.eclegbroken.watcher.DragonWatcher;
 import com.bilicraft.eclegbroken.watcher.PotionEffectWatcher;
 import org.bukkit.Bukkit;
@@ -20,7 +22,8 @@ public final class ECArmBroken extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(listener,this);
         watcher.runTaskTimer(this,0,1);
         new DragonWatcher(this).runTaskTimer(this,0,10);
-
+        Bukkit.getPluginManager().registerEvents(new RollListener(this),this);
+        new DayTimeWatcher(this).runTaskTimer(this,0,5);
     }
 
     @Override

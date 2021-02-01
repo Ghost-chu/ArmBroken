@@ -20,12 +20,12 @@ public class Roll {
 
     public Roll(ECArmBroken plugin) {
         this.plugin = plugin;
-        this.rollMap.put(0, new AbstractMap.SimpleEntry<>("☰", "糟透了"));
-        this.rollMap.put(1, new AbstractMap.SimpleEntry<>("☲", "真糟糕"));
-        this.rollMap.put(2, new AbstractMap.SimpleEntry<>("☱", "海星"));
-        this.rollMap.put(3, new AbstractMap.SimpleEntry<>("☴", "还不错"));
-        this.rollMap.put(4, new AbstractMap.SimpleEntry<>("☵", "幸运"));
-        this.rollMap.put(5, new AbstractMap.SimpleEntry<>("☶", "非常幸运"));
+        this.rollMap.put(0, new AbstractMap.SimpleEntry<>("F", "糟透了"));
+        this.rollMap.put(1, new AbstractMap.SimpleEntry<>("E", "真糟糕"));
+        this.rollMap.put(2, new AbstractMap.SimpleEntry<>("D", "海星"));
+        this.rollMap.put(3, new AbstractMap.SimpleEntry<>("C", "还不错"));
+        this.rollMap.put(4, new AbstractMap.SimpleEntry<>("B", "幸运"));
+        this.rollMap.put(5, new AbstractMap.SimpleEntry<>("A", "非常幸运"));
     }
 
     /**
@@ -34,7 +34,7 @@ public class Roll {
     public void systemRoll() {
         Map.Entry<Integer, Map.Entry<String, String>> roll = getRandom();
         playRollAnimation(new ArrayList<>(Bukkit.getOnlinePlayers()), () -> {
-            sendTitle(new ArrayList<>(Bukkit.getOnlinePlayers()), roll.getValue().getValue(), roll.getValue().getValue());
+            sendTitle(new ArrayList<>(Bukkit.getOnlinePlayers()), roll.getValue().getValue(), roll.getValue().getValue(),Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
             if (roll.getKey() < 2) {
                 //糟透了
                 PotionEffectType[] badLuck = {PotionEffectType.HUNGER,
@@ -87,11 +87,11 @@ public class Roll {
 
         Map.Entry<Integer, Map.Entry<String, String>> roll = getRandom();
         playRollAnimation(ImmutableList.of(player), () -> {
-                    sendTitle(ImmutableList.of(player), roll.getValue().getKey(), roll.getValue().getValue());
+                    sendTitle(ImmutableList.of(player), roll.getValue().getKey(), roll.getValue().getValue(),Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
                     if (roll.getKey() < 2) {
-                        feed.set(-5);
-                    } else if (roll.getKey() < 4) {
                         feed.set(0);
+                    } else if (roll.getKey() < 4) {
+                        feed.set(2);
                     } else {
                         feed.set(5);
                     }
@@ -110,17 +110,20 @@ public class Roll {
         return new ArrayList<>(all).get(this.random.nextInt(this.rollMap.size()));
     }
 
-    public void sendTitle(List<Player> playerList, String title, String subtitle) {
+    public void sendTitle(List<Player> playerList, String title, String subtitle, Sound sound) {
         //放点声音和特效
         playerList.forEach(player -> {
             player.sendTitle(ChatColor.GOLD + title, subtitle, 0, 80, 0);
-            player.playSound(player.getLocation(), Sound.BLOCK_DISPENSER_FAIL, 0.5f, 1.0f);
+            if(sound == null)
+                player.playSound(player.getLocation(), Sound.BLOCK_DISPENSER_FAIL, 0.5f, 1.0f);
+            else
+                player.playSound(player.getLocation(), sound, 0.5f, 1.0f);
         });
     }
 
     public void sendRandomRollTitle(List<Player> playerList) {
         Map.Entry<Integer, Map.Entry<String, String>> random = getRandom();
-        sendTitle(playerList, random.getValue().getKey(), random.getValue().getValue());
+        sendTitle(playerList, random.getValue().getKey(), random.getValue().getValue(),null);
     }
 
 
@@ -132,7 +135,7 @@ public class Roll {
                 try {
                     for (int i = 0; i < 30; i++) {
                         sendRandomRollTitle(playerList);
-                        Thread.sleep(20);
+                        Thread.sleep(70);
                     }
                     callback.run();
                 } catch (InterruptedException e) {

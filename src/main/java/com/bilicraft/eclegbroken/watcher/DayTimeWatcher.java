@@ -9,6 +9,10 @@ public class DayTimeWatcher extends BukkitRunnable {
     boolean todayRolled = false;
     private ECArmBroken plugin;
 
+    public DayTimeWatcher(ECArmBroken plugin){
+        this.plugin = plugin;
+    }
+
     /**
      * When an object implementing interface <code>Runnable</code> is used
      * to create a thread, starting the thread causes the object's
@@ -23,11 +27,11 @@ public class DayTimeWatcher extends BukkitRunnable {
     @Override
     public void run() {
         World world = Bukkit.getWorlds().get(0); //Main world
-        if (world.getTime() > 14 * 1000 && !todayRolled) {
+        if (world.getTime() > 6000 && !todayRolled) {
             plugin.getRoll().systemRoll();
             plugin.getLogger().info("新的一天ROLL!");
             todayRolled = true;
-        } else if (world.getTime() < 14 * 1000 && todayRolled) {
+        } else if (world.getTime() < 6000 && todayRolled) {
             todayRolled = false;
         }
     }
