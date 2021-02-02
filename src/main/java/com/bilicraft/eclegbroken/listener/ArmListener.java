@@ -16,6 +16,7 @@ import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
@@ -74,7 +75,10 @@ public class ArmListener implements Listener {
         if (!stack.getItemMeta().getDisplayName().equals(AQUA + "镐击镐")) {
             return false;
         }
-        return stack.getDurability() <= 10;
+        if (!(stack.getItemMeta() instanceof Damageable)) {
+           return false;
+        }
+        return ((Damageable) stack.getItemMeta()).getDamage() <= 10;
     }
 
     //你的就是我的
@@ -179,12 +183,10 @@ public class ArmListener implements Listener {
 
     @EventHandler
     public void enderDragonAttacking(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof EnderDragon)) {
+        if(event.getDamager().getType() != EntityType.ENDER_DRAGON)
             return;
-        }
-        if (!(event.getEntity() instanceof Player)) {
+        if(event.getDamager().getType() != EntityType.PLAYER)
             return;
-        }
         EnderDragon dragon = (EnderDragon) event.getDamager();
 
         Collection<PotionEffect> effectCollection = ((Player) event.getEntity()).getActivePotionEffects();
@@ -214,12 +216,6 @@ public class ArmListener implements Listener {
             respawnAllCrystals();
         }
     }
-
-//    @EventHandler(priority = EventPriority.HIGH)
-//    public void damageEnhance(EntityDamageByEntityEvent event) {
-//        if (event.getEntity() instanceof Player && !(event.getDamager() instanceof Player))
-//            event.setDamage(event.getFinalDamage() * 1.3);
-//    }
 
     @EventHandler
     public void enderDragonDefending(EntityDamageByEntityEvent event) {
