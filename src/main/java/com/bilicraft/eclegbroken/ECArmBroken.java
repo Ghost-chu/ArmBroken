@@ -16,14 +16,15 @@ public final class ECArmBroken extends JavaPlugin {
     private ArmListener listener = new ArmListener(this);
     private TimeCapsule capsule = new TimeCapsule(this);
 
+
     @Override
     public void onEnable() {
         // Plugin startup logic
         Bukkit.getPluginManager().registerEvents(listener,this);
-        watcher.runTaskTimer(this,0,1);
+        watcher.runTaskTimer(this,0,25);
         new DragonWatcher(this).runTaskTimer(this,0,10);
         Bukkit.getPluginManager().registerEvents(new RollListener(this),this);
-        new DayTimeWatcher(this).runTaskTimer(this,0,5);
+        new DayTimeWatcher(this).runTaskTimer(this,0,20);
     }
 
     @Override

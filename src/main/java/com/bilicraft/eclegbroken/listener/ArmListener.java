@@ -9,11 +9,13 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -76,7 +78,7 @@ public class ArmListener implements Listener {
             return false;
         }
         if (!(stack.getItemMeta() instanceof Damageable)) {
-           return false;
+            return false;
         }
         return ((Damageable) stack.getItemMeta()).getDamage() <= 10;
     }
@@ -97,8 +99,8 @@ public class ArmListener implements Listener {
     private final Gson gson = new Gson();
 
     @EventHandler
-    public void craftCrystal(CraftItemEvent event){
-        if(event.getRecipe().getResult().getType() == Material.END_CRYSTAL)
+    public void craftCrystal(CraftItemEvent event) {
+        if (event.getRecipe().getResult().getType() == Material.END_CRYSTAL)
             event.setCancelled(true);
     }
 
@@ -183,9 +185,9 @@ public class ArmListener implements Listener {
 
     @EventHandler
     public void enderDragonAttacking(EntityDamageByEntityEvent event) {
-        if(event.getDamager().getType() != EntityType.ENDER_DRAGON)
+        if (event.getDamager().getType() != EntityType.ENDER_DRAGON)
             return;
-        if(event.getDamager().getType() != EntityType.PLAYER)
+        if (event.getDamager().getType() != EntityType.PLAYER)
             return;
         EnderDragon dragon = (EnderDragon) event.getDamager();
 
@@ -288,5 +290,43 @@ public class ArmListener implements Listener {
         }
     }
 
+    private final Map<Player, Long> damageFree = new HashMap<>();
 
+    @EventHandler
+    public void deathEvent(PlayerDeathEvent event) {
+        damageFree.put(event.getEntity(), System.currentTimeMillis() + 15 * 1000);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void playerProtect(EntityDamageByEntityEvent event) {
+        if (event.getEntity() instanceof Player) {
+            Player player = (Player) event.getEntity();
+            Long time = damageFree.get(player);
+            if (time == null)
+                return;
+            if (System.currentTimeMillis() > time)
+                event.setCancelled(true);
+            else
+                damageFree.remove(player);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void playerProtect(EntityTargetLivingEntityEvent event) {
+        if (event.getEntity() instanceof Player) {
+            Player player = (Player) event.getTarget();
+            Long time = damageFree.get(player);
+            if (time == null)
+                return;
+            if (System.currentTimeMillis() > time)
+                event.setTarget(null);
+            else
+                damageFree.remove(player);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void playerLeft(PlayerQuitEvent event) {
+        damageFree.remove(event.getPlayer());
+    }
 }

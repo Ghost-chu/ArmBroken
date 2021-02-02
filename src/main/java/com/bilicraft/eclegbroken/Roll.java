@@ -39,12 +39,10 @@ public class Roll {
                 //糟透了
                 PotionEffectType[] badLuck = {PotionEffectType.HUNGER,
                         PotionEffectType.BAD_OMEN,
-                        PotionEffectType.POISON,
-                        PotionEffectType.BLINDNESS,
                         PotionEffectType.SLOW,
                         PotionEffectType.SLOW_DIGGING,
                         PotionEffectType.UNLUCK,
-                        PotionEffectType.WEAKNESS
+                        PotionEffectType.WEAKNESS,
                 };
                 plugin.getWatcher().setEffectList(ImmutableList.of(createRandomLevelPotionEffect(badLuck[random.nextInt(badLuck.length)]), createRandomLevelPotionEffect(badLuck[random.nextInt(badLuck.length)])));
             } else if (roll.getKey() < 4) {
@@ -63,7 +61,8 @@ public class Roll {
                         PotionEffectType.HERO_OF_THE_VILLAGE,
                         PotionEffectType.REGENERATION,
                         PotionEffectType.SPEED,
-                        PotionEffectType.WATER_BREATHING
+                        PotionEffectType.WATER_BREATHING,
+                        PotionEffectType.CONDUIT_POWER
                 };
                 plugin.getWatcher().setEffectList(ImmutableList.of(createRandomLevelPotionEffect(goodLuck[random.nextInt(goodLuck.length)]), createRandomLevelPotionEffect(goodLuck[random.nextInt(goodLuck.length)])));
 
@@ -102,7 +101,7 @@ public class Roll {
     }
 
     private PotionEffect createRandomLevelPotionEffect(PotionEffectType effectType) {
-        return new PotionEffect(effectType, 80, random.nextInt(2) + 1);
+        return new PotionEffect(effectType, 240, random.nextInt(2) );
     }
 
     public Map.Entry<Integer, Map.Entry<String, String>> getRandom() {
