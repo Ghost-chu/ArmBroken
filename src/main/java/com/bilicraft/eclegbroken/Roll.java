@@ -11,7 +11,6 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Roll {
     private final ECArmBroken plugin;
@@ -82,19 +81,25 @@ public class Roll {
         Player player = (Player) event.getEntity();
         event.setCancelled(true);
         int newFoodLevel = event.getFoodLevel();
-        AtomicInteger feed = new AtomicInteger(newFoodLevel - player.getFoodLevel());
+        int addedFoodLevel = newFoodLevel - ((Player) event.getEntity()).getFoodLevel();
 
         Map.Entry<Integer, Map.Entry<String, String>> roll = getRandom();
         playRollAnimation(ImmutableList.of(player), () -> {
                     sendTitle(ImmutableList.of(player), roll.getValue().getKey(), roll.getValue().getValue(),Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
+                    int feed;
+                    float saturation;
                     if (roll.getKey() < 2) {
-                        feed.set(0);
+                        feed = 0;
+                        saturation = 3;
                     } else if (roll.getKey() < 4) {
-                        feed.set(2);
+                        feed = 1;
+                        saturation = 5;
                     } else {
-                        feed.set(5);
+                        feed = 2;
+                        saturation = 10;
                     }
-                    player.setFoodLevel(player.getFoodLevel() + feed.get());
+                    player.setFoodLevel(((Player) event.getEntity()).getFoodLevel()+feed);
+                    player.setSaturation(((Player) event.getEntity()).getSaturation()+saturation);
                 }
         );
 
