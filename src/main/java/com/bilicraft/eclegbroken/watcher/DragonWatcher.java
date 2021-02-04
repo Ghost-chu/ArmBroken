@@ -46,6 +46,7 @@ public class DragonWatcher extends BukkitRunnable {
                     dragon.setHealth(15000.0d);
                     plugin.getLogger().info("末影龙血量已设置为 >> "+dragon.getMaxHealth());
                 }
+                dragon.setHealth(Math.min(dragon.getMaxHealth(),dragon.getHealth()+2));
             });
         }
     }

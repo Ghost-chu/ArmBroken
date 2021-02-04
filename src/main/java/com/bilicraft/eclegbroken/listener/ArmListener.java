@@ -7,13 +7,14 @@ import com.google.gson.Gson;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
-import org.bukkit.event.entity.*;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -207,11 +208,17 @@ public class ArmListener implements Listener {
 
     @EventHandler
     public void enderDragonAttacking(EntityDamageByEntityEvent event) {
-        if (event.getDamager().getType() != EntityType.ENDER_DRAGON)
-            return;
         if (event.getDamager().getType() != EntityType.PLAYER)
             return;
-        EnderDragon dragon = (EnderDragon) event.getDamager();
+        EnderDragon dragon ;
+        if (event.getDamager().getType() == EntityType.ENDER_DRAGON)
+            dragon = (EnderDragon) event.getDamager();
+        else if (event.getDamager().getType() == EntityType.DRAGON_FIREBALL)
+            dragon = (EnderDragon) ((DragonFireball)event.getDamager()).getShooter();
+        else
+            return;
+        if(dragon == null)
+            return;
 
         Collection<PotionEffect> effectCollection = ((Player) event.getEntity()).getActivePotionEffects();
         if (effectCollection.stream().map(PotionEffect::getType)
@@ -255,6 +262,20 @@ public class ArmListener implements Listener {
                     .forEach(sender -> sender.sendMessage(LIGHT_PURPLE + "[水晶恢复] " + YELLOW + "末影龙发动技能，恢复了所有末影水晶"));
             respawnAllCrystals();
         }
+
+        //星爆弃疗斩 随机对玩家造成致命伤害 添加玩家HP给末影龙
+        if (random.nextInt(100) == 0) {
+            double healthCanAdd = Math.min(dragon.getMaxHealth() - dragon.getHealth(), ((Player) event.getEntity()).getHealth() * 15);
+            ((Player) event.getEntity()).damage(100d, dragon);
+            ((Player) event.getEntity()).setHealth(0.0d);
+            dragon.setHealth(dragon.getHealth() + healthCanAdd);
+            Bukkit.getOnlinePlayers().stream().filter(player -> player.getWorld().equals(event.getDamager().getWorld()))
+                    .forEach(sender -> sender.sendMessage(LIGHT_PURPLE + "[星爆弃疗斩] " + YELLOW + "末影龙发动技能，对 "
+                            + event.getEntity().getName() + " 造成了 " + Util.formatDouble(100.0d) + " 点伤害"));
+            return;
+        }
+
+
         if (event.getFinalDamage() >= dragon.getHealth() && !(event.getDamager() instanceof Player)) {
             //致命伤害 对末影龙会造成致命的伤害，只能由玩家直接造成，否则则会保留1HP血量。
             event.setCancelled(true);
@@ -284,8 +305,17 @@ public class ArmListener implements Listener {
                     event.setCancelled(true);
                     return;
                 }
-
             }
+            if(random.nextInt(10) == 0){
+                Bukkit.getOnlinePlayers().stream().filter(player -> player.getWorld().equals(event.getDamager().getWorld()))
+                        .forEach(sender -> {sender.sendMessage(LIGHT_PURPLE + "[末影诅咒] " + YELLOW + "末影龙发动技能，你被末影龙诅咒了！");
+                        sender.addPotionEffect(new PotionEffect(PotionEffectType.WITHER,600,2));
+                        sender.setFoodLevel(0);
+                        sender.setSaturation(0.0f);
+                        sender.setVelocity(new Vector(0,20,0));
+                        });
+            }
+
         }
     }
 
@@ -304,19 +334,22 @@ public class ArmListener implements Listener {
         if(!(event.getEntity() instanceof DragonFireball))
             return;
        Collection<Entity> entities = event.getEntity().getWorld().getNearbyEntities(event.getLocation(), 10, 10, 10);
-       entities.forEach(entity-> {
-           entity.getVelocity().add(new Vector(0, 2.0, 0));
-       });
+       entities.forEach(entity-> entity.getVelocity().add(new Vector(0, 2.0, 0)));
        event.getLocation().getWorld().createExplosion(event.getLocation(),5F, true, true);
+
     }
 
     @EventHandler
     public void entityDeath(EntityDeathEvent event) {
-        if (random.nextInt(250) == 0 &&
-                event.getEntity() instanceof Monster &&
-                event.getEntity().getLastDamageCause() != null &&
-                event.getEntity().getLastDamageCause().getEntity() instanceof Player) {
+        if (event.getEntity() instanceof Boss) {
             event.getDrops().add(ItemCreator.makeGaoJiPickaxe());
+        }
+
+        if(event.getEntity() instanceof Monster){
+           if( event.getDroppedExp() > 0){
+               if(random.nextInt(300) == 0)
+                   event.getDrops().add(ItemCreator.makeGaoJiPickaxe());
+           }
         }
 
         if (event.getEntity() instanceof EnderDragon) {
@@ -330,45 +363,5 @@ public class ArmListener implements Listener {
             }
             event.getDrops().add(new ItemStack(Material.GUNPOWDER));
         }
-    }
-
-    private final Map<Player, Long> damageFree = new HashMap<>();
-
-    @EventHandler
-    public void deathEvent(PlayerDeathEvent event) {
-        damageFree.put(event.getEntity(), System.currentTimeMillis() + 15 * 1000);
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void playerProtect(EntityDamageByEntityEvent event) {
-        if (event.getEntity() instanceof Player) {
-            Player player = (Player) event.getEntity();
-            Long time = damageFree.get(player);
-            if (time == null)
-                return;
-            if (System.currentTimeMillis() > time)
-                event.setCancelled(true);
-            else
-                damageFree.remove(player);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void playerProtect(EntityTargetLivingEntityEvent event) {
-        if (event.getEntity() instanceof Player) {
-            Player player = (Player) event.getTarget();
-            Long time = damageFree.get(player);
-            if (time == null)
-                return;
-            if (System.currentTimeMillis() > time)
-                event.setTarget(null);
-            else
-                damageFree.remove(player);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void playerLeft(PlayerQuitEvent event) {
-        damageFree.remove(event.getPlayer());
     }
 }
