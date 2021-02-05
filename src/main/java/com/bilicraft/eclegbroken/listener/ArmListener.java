@@ -17,7 +17,6 @@ import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
@@ -81,10 +80,7 @@ public class ArmListener implements Listener {
         if (!stack.getItemMeta().getDisplayName().equals(AQUA + "镐击镐")) {
             return false;
         }
-        if (!(stack.getItemMeta() instanceof Damageable)) {
-            return false;
-        }
-        return ((Damageable) stack.getItemMeta()).getDamage() <= 100;
+        return stack.getDurability() <= 100;
     }
 
     //你的就是我的

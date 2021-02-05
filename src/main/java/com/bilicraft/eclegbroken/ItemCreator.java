@@ -5,7 +5,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Random;
@@ -20,9 +19,8 @@ public class ItemCreator {
         meta.addEnchant(Enchantment.DIG_SPEED,5,true);
         meta.addEnchant(Enchantment.DURABILITY,3,true);
         meta.addEnchant(Enchantment.LOOT_BONUS_BLOCKS,3,true);
-        Damageable damageable = (Damageable)meta;
-        damageable.setDamage(random.nextInt(30)+1);
         stack.setItemMeta(meta);
+        stack.setDurability((short) (random.nextInt(30)+1));
         return stack;
     }
 }
