@@ -1,7 +1,6 @@
 package com.bilicraft.eclegbroken.listener;
 
 import com.bilicraft.eclegbroken.ECArmBroken;
-import com.bilicraft.eclegbroken.ItemCreator;
 import com.bilicraft.eclegbroken.Util;
 import com.google.gson.Gson;
 import org.bukkit.*;
@@ -37,8 +36,12 @@ public class ArmListener implements Listener {
     //我的胳膊断了
     @EventHandler
     public void mineBlock(BlockBreakEvent event) {
-        if (isGaoJiPickaxe(event.getPlayer().getInventory().getItemInMainHand()))
-            return;
+        if (event.getPlayer().getActivePotionEffects().stream().anyMatch(effect -> effect.getType() == PotionEffectType.FAST_DIGGING)) {
+            if (random.nextInt(5) == 0)
+                return;
+        }
+
+
         Material material = event.getBlock().getType();
         //Mineable blocks
         if (!material.isSolid() || material.isTransparent())
@@ -68,19 +71,6 @@ public class ArmListener implements Listener {
         if (material == Material.PUMPKIN)
             return;
         event.setCancelled(true);
-    }
-
-    private boolean isGaoJiPickaxe(ItemStack stack) {
-        if (stack.getType() != Material.DIAMOND_AXE) {
-            return false;
-        }
-        if (!stack.getItemMeta().hasDisplayName()) {
-            return false;
-        }
-        if (!stack.getItemMeta().getDisplayName().equals(AQUA + "镐击镐")) {
-            return false;
-        }
-        return stack.getDurability() <= 100;
     }
 
     //你的就是我的
@@ -192,9 +182,9 @@ public class ArmListener implements Listener {
             return;
         EnderDragon dragon = (EnderDragon) event.getEntity();
         Player target = (Player) event.getTarget();
-        if(dragon.getHealth() *0.8 > dragon.getMaxHealth())
+        if (dragon.getHealth() * 0.8 > dragon.getMaxHealth())
             return;
-        if(random.nextInt(20) != 0)
+        if (random.nextInt(20) != 0)
             return;
         target.sendMessage(LIGHT_PURPLE + "[闪电风暴] " + YELLOW + "末影龙发动技能，召唤了闪电风暴！");
         for (int i = 0; i < 30; i++) {
@@ -204,31 +194,29 @@ public class ArmListener implements Listener {
 
     @EventHandler
     public void enderDragonAttacking(EntityDamageByEntityEvent event) {
-        if (event.getDamager().getType() != EntityType.PLAYER)
-            return;
-        EnderDragon dragon ;
+        EnderDragon dragon;
         if (event.getDamager().getType() == EntityType.ENDER_DRAGON)
             dragon = (EnderDragon) event.getDamager();
         else if (event.getDamager().getType() == EntityType.DRAGON_FIREBALL)
-            dragon = (EnderDragon) ((DragonFireball)event.getDamager()).getShooter();
+            dragon = (EnderDragon) ((DragonFireball) event.getDamager()).getShooter();
         else
             return;
-        if(dragon == null)
+        if (dragon == null)
             return;
 
         Collection<PotionEffect> effectCollection = ((Player) event.getEntity()).getActivePotionEffects();
         if (effectCollection.stream().map(PotionEffect::getType)
                 .anyMatch(effectType -> effectType.equals(PotionEffectType.JUMP) || effectType.equals(PotionEffectType.INCREASE_DAMAGE))) {
             //叠伤害 - 增加30%攻击力
-            event.setDamage(event.getDamage() * 1.3);
+            event.setDamage(event.getDamage() + (event.getDamage() * 0.3));
             event.getEntity().sendMessage(LIGHT_PURPLE + "[伤害增强] " + YELLOW + "你的药水效果给你带来了破绽，末影龙额外对你造成了 "
                     + Util.formatDouble(event.getDamage() * 0.3) + "点伤害！");
         }
 
         //星爆弃疗斩 随机对玩家造成致命伤害 添加玩家HP给末影龙
-        if (random.nextInt(5) == 0) {
+        if (random.nextInt(15) == 0) {
             double healthCanAdd = Math.min(dragon.getMaxHealth() - dragon.getHealth(), ((Player) event.getEntity()).getHealth() * 15);
-            ((Player) event.getEntity()).damage(100d, dragon);
+            ((Player) event.getEntity()).damage(10d, dragon);
             ((Player) event.getEntity()).setHealth(0.0d);
             dragon.setHealth(dragon.getHealth() + healthCanAdd);
             Bukkit.getOnlinePlayers().stream().filter(player -> player.getWorld().equals(event.getDamager().getWorld()))
@@ -262,15 +250,14 @@ public class ArmListener implements Listener {
         //星爆弃疗斩 随机对玩家造成致命伤害 添加玩家HP给末影龙
         if (random.nextInt(100) == 0) {
             double healthCanAdd = Math.min(dragon.getMaxHealth() - dragon.getHealth(), ((Player) event.getEntity()).getHealth() * 15);
-            ((Player) event.getEntity()).damage(100d, dragon);
+            ((Player) event.getEntity()).damage(19d, dragon);
             ((Player) event.getEntity()).setHealth(0.0d);
             dragon.setHealth(dragon.getHealth() + healthCanAdd);
             Bukkit.getOnlinePlayers().stream().filter(player -> player.getWorld().equals(event.getDamager().getWorld()))
                     .forEach(sender -> sender.sendMessage(LIGHT_PURPLE + "[星爆弃疗斩] " + YELLOW + "末影龙发动技能，对 "
-                            + event.getEntity().getName() + " 造成了 " + Util.formatDouble(100.0d) + " 点伤害"));
+                            + event.getEntity().getName() + " 造成了 " + Util.formatDouble(19.0d) + " 点伤害"));
             return;
         }
-
 
         if (event.getFinalDamage() >= dragon.getHealth() && !(event.getDamager() instanceof Player)) {
             //致命伤害 对末影龙会造成致命的伤害，只能由玩家直接造成，否则则会保留1HP血量。
@@ -302,13 +289,14 @@ public class ArmListener implements Listener {
                     return;
                 }
             }
-            if(random.nextInt(10) == 0){
+            if (random.nextInt(10) == 0) {
                 Bukkit.getOnlinePlayers().stream().filter(player -> player.getWorld().equals(event.getDamager().getWorld()))
-                        .forEach(sender -> {sender.sendMessage(LIGHT_PURPLE + "[末影诅咒] " + YELLOW + "末影龙发动技能，你被末影龙诅咒了！");
-                        sender.addPotionEffect(new PotionEffect(PotionEffectType.WITHER,600,2));
-                        sender.setFoodLevel(0);
-                        sender.setSaturation(0.0f);
-                        sender.setVelocity(new Vector(0,20,0));
+                        .forEach(sender -> {
+                            sender.sendMessage(LIGHT_PURPLE + "[末影诅咒] " + YELLOW + "末影龙发动技能，你被末影龙诅咒了！");
+                            sender.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 600, 2));
+                            sender.setFoodLevel(0);
+                            sender.setSaturation(0.0f);
+                            sender.setVelocity(new Vector(0, 5, 0));
                         });
             }
 
@@ -327,26 +315,26 @@ public class ArmListener implements Listener {
 
     @EventHandler
     public void enderFireballExplode(EntityExplodeEvent event) {
-        if(!(event.getEntity() instanceof DragonFireball))
+        if (!(event.getEntity() instanceof DragonFireball))
             return;
-       Collection<Entity> entities = event.getEntity().getWorld().getNearbyEntities(event.getLocation(), 10, 10, 10);
-       entities.forEach(entity-> entity.getVelocity().add(new Vector(0, 2.0, 0)));
-       event.getLocation().getWorld().createExplosion(event.getLocation(),5F, true, true);
+        Collection<Entity> entities = event.getEntity().getWorld().getNearbyEntities(event.getLocation(), 10, 10, 10);
+        entities.forEach(entity -> entity.getVelocity().add(new Vector(0, 2.0, 0)));
+        event.getLocation().getWorld().createExplosion(event.getLocation(), 5F, true, true);
 
     }
 
     @EventHandler
     public void entityDeath(EntityDeathEvent event) {
-        if (event.getEntity() instanceof Boss) {
-            event.getDrops().add(ItemCreator.makeGaoJiPickaxe());
-        }
-
-        if(event.getEntity() instanceof Monster){
-           if( event.getDroppedExp() > 0){
-               if(random.nextInt(300) == 0)
-                   event.getDrops().add(ItemCreator.makeGaoJiPickaxe());
-           }
-        }
+//        if (event.getEntity() instanceof Boss) {
+//            event.getDrops().add(ItemCreator.makeGaoJiPickaxe());
+//        }
+//
+//        if(event.getEntity() instanceof Monster){
+//           if( event.getDroppedExp() > 0){
+//               if(random.nextInt(300) == 0)
+//                   event.getDrops().add(ItemCreator.makeGaoJiPickaxe());
+//           }
+//        }
 
         if (event.getEntity() instanceof EnderDragon) {
             Bukkit.broadcastMessage(GOLD + "" + BOLD + "[末影龙已被击杀] 屠龙勇士是：" + event.getEntity().getLastDamageCause().getEntity().getName());

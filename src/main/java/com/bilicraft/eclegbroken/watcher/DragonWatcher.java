@@ -26,7 +26,6 @@ public class DragonWatcher extends BukkitRunnable {
      */
     @Override
     public void run() {
-
         for (World world : Bukkit.getWorlds()) {
             if(world.getEnvironment() != World.Environment.THE_END)
                 continue;
@@ -46,7 +45,6 @@ public class DragonWatcher extends BukkitRunnable {
                     dragon.setHealth(15000.0d);
                     plugin.getLogger().info("末影龙血量已设置为 >> "+dragon.getMaxHealth());
                 }
-                dragon.setHealth(Math.min(dragon.getMaxHealth(),dragon.getHealth()+0.5f));
             });
         }
     }
