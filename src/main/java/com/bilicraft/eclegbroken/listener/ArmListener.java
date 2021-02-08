@@ -36,11 +36,11 @@ public class ArmListener implements Listener {
     //我的胳膊断了
     @EventHandler
     public void mineBlock(BlockBreakEvent event) {
-        if (event.getPlayer().getActivePotionEffects().stream().anyMatch(effect -> effect.getType() == PotionEffectType.FAST_DIGGING)) {
-            if (random.nextInt(5) == 0)
+        PotionEffect effect = event.getPlayer().getPotionEffect(PotionEffectType.FAST_DIGGING);
+        if(effect != null){
+            if(random.nextInt(10) == 1)
                 return;
         }
-
 
         Material material = event.getBlock().getType();
         //Mineable blocks
@@ -250,7 +250,7 @@ public class ArmListener implements Listener {
         //星爆弃疗斩 随机对玩家造成致命伤害 添加玩家HP给末影龙
         if (random.nextInt(100) == 0) {
             double healthCanAdd = Math.min(dragon.getMaxHealth() - dragon.getHealth(), ((Player) event.getEntity()).getHealth() * 15);
-            ((Player) event.getEntity()).damage(19d, dragon);
+            ((Player) event.getEntity()).damage(19.0d, dragon);
             ((Player) event.getEntity()).setHealth(0.0d);
             dragon.setHealth(dragon.getHealth() + healthCanAdd);
             Bukkit.getOnlinePlayers().stream().filter(player -> player.getWorld().equals(event.getDamager().getWorld()))
