@@ -187,8 +187,8 @@ public class ArmListener implements Listener {
         if (random.nextInt(20) != 0)
             return;
         target.sendMessage(LIGHT_PURPLE + "[闪电风暴] " + YELLOW + "末影龙发动技能，召唤了闪电风暴！");
-        for (int i = 0; i < 30; i++) {
-            target.getWorld().strikeLightning(target.getLocation());
+        for (int i = 0; i < 10; i++) {
+            target.getWorld().strikeLightning(target.getLocation().add(random.nextInt(10),random.nextInt(10),random.nextInt(10)));
         }
     }
 
@@ -241,7 +241,7 @@ public class ArmListener implements Listener {
         double health25 = dragon.getMaxHealth() * 0.25;
         double health10 = dragon.getMaxHealth() * 0.10;
         //攻击时几率恢复末影水晶
-        if (random.nextInt(30) == 0) {
+        if (random.nextInt(40) == 0) {
             Bukkit.getOnlinePlayers().stream().filter(player -> player.getWorld().equals(event.getDamager().getWorld()))
                     .forEach(sender -> sender.sendMessage(LIGHT_PURPLE + "[水晶恢复] " + YELLOW + "末影龙发动技能，恢复了所有末影水晶"));
             respawnAllCrystals();
